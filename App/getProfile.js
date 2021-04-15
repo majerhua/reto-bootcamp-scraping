@@ -20,7 +20,7 @@ function scrapingProfile() {
         "div > section.pv-contact-info__contact-type.ci-phone > ul > li > span",
       education: "section.pv-profile-section > ul > li .pv-entity__school-name",
       experience:
-        "#experience-section > ul.pv-profile-section__section-info > li.pv-entity__position-group-pager h3",
+        "#experience-section > ul.pv-profile-section__section-info > li.pv-entity__position-group-pager .pv-entity__summary-info",
       urlLinkedin:
         "div > section.pv-contact-info__contact-type.ci-vanity-url > div > a",
     },
@@ -100,7 +100,14 @@ function scrapingProfile() {
     const experienceAll = [];
     let j;
     for (j = 0; j < experience.length; j++) {
-      experienceAll.push(experience[j].innerText);
+      let nameExperience = experience[j].childNodes[1].innerText;
+      let companyWork = experience[j].childNodes[5].innerText;
+      let timeWork = experience[j].childNodes[8].innerText;
+      experienceAll.push({
+        nameExperience,
+        companyWork,
+        timeWork,
+      });
     }
 
     const buttonSeeMore = document.querySelector(buttonSeeMoreCss);
