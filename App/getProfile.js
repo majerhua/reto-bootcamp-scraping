@@ -11,9 +11,10 @@ btnstrap.addEventListener("click", async () => {
 function scrapingProfile() {
   const cssSelectorsProfile = {
     profile: {
+      about: ".pv-about__summary-text span.lt-line-clamp__raw-line",
+      about2: ".pv-about__summary-text span.lt-line-clamp__line",
       name: "div.ph5 > div.mt2 > div > ul > li",
       resumen: "div.ph5 > div.mt2 > div > ul ~ h2",
-      // country: 'div.ph5.pb5 > div.display-flex.mt2.pv-top-card--reflow > div.pv-top-card__list-container > ul.cx.mt1 > li'
       country: "div.ph5 > div.mt2 > div > ul.mt1 > li.t-16",
       email: "div > section.pv-contact-info__contact-type.ci-email > div > a",
       phone:
@@ -27,6 +28,7 @@ function scrapingProfile() {
     option: {
       buttonSeeMore: '[data-control-name="contact_see_more"]',
       buttonCloseSeeMore: "button.artdeco-modal__dismiss",
+      linkSeeMoreAbout: "#line-clamp-show-more-button",
     },
   };
 
@@ -69,6 +71,8 @@ function scrapingProfile() {
   const getContactProfile = async () => {
     const {
       profile: {
+        about: aboutCss,
+        about2: about2Css,
         name: nameCss,
         resumen: resumenCss,
         country: countryCss,
@@ -81,12 +85,33 @@ function scrapingProfile() {
       option: {
         buttonSeeMore: buttonSeeMoreCss,
         buttonCloseSeeMore: buttonCloseSeeMoreCss,
+        linkSeeMoreAbout: linkSeeMoreAboutCss,
       },
     } = cssSelectorsProfile;
 
     const name = document.querySelector(nameCss)?.innerText;
     const resumen = document.querySelector(resumenCss)?.innerText;
     const country = document.querySelector(countryCss)?.innerText;
+
+    const buttonSeeMore = document.querySelector(buttonSeeMoreCss);
+    buttonSeeMore.click();
+    await wait(1000);
+
+    const email = document.querySelector(emailCss)?.innerText;
+    const phone = document.querySelector(phoneCss)?.innerText;
+    let about = "";
+    const linkSeeMoreAbout = document.querySelector(linkSeeMoreAboutCss);
+    if (linkSeeMoreAbout != null) {
+      linkSeeMoreAbout.click();
+      about = document.querySelector(aboutCss)?.innerText;
+    } else {
+      const about2 = document.querySelectorAll(about2Css);
+      let i;
+      for (i = 0; i < about2.length; i++) {
+        about += about2[i].innerText + " ";
+      }
+    }
+    await wait(1000);
 
     const education = document.querySelectorAll(educationCss);
     const educationAll = [];
@@ -98,11 +123,12 @@ function scrapingProfile() {
 
     const experience = document.querySelectorAll(experienceCss);
     const experienceAll = [];
-    let j;
-    for (j = 0; j < experience.length; j++) {
-      let nameExperience = experience[j].childNodes[1].innerText;
-      let companyWork = experience[j].childNodes[5].innerText;
-      let timeWork = experience[j].childNodes[8].innerText;
+    i = 0;
+    for (i = 0; i < experience.length; i++) {
+      let nameExperience = experience[i].childNodes[1].innerText;
+      let companyWork = experience[i].childNodes[5].innerText;
+      let timeWork = experience[i].childNodes[8].innerText;
+
       experienceAll.push({
         nameExperience,
         companyWork,
@@ -110,16 +136,9 @@ function scrapingProfile() {
       });
     }
 
-    const buttonSeeMore = document.querySelector(buttonSeeMoreCss);
-    buttonSeeMore.click();
-
-    await wait(1000);
-
-    const email = document.querySelector(emailCss)?.innerText;
-    const phone = document.querySelector(phoneCss)?.innerText;
-
     let basicProfile = {
       name,
+      about,
       resumen,
       country,
       email,
@@ -141,9 +160,24 @@ function scrapingProfile() {
   };
 
   const getProfile = async () => {
-    const profile = await getContactProfile();
     await autoscrollToElement("body");
+    const profile = await getContactProfile();
     console.log(profile);
+
+    const rawResponse = await fetch(
+      "https://wsscrapingkrowdy.herokuapp.com/api/postulante/registro",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profile),
+      }
+    );
+    const content = await rawResponse.json();
+
+    console.log(content);
   };
 
   getProfile();
