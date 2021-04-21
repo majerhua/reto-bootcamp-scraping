@@ -177,6 +177,12 @@ function scrapingProfile() {
     );
     const content = await rawResponse.json();
 
+    if (content.success) {
+      alert("Se registro el perfil en nuestra base de datos correctamente");
+    } else {
+      alert("Ocurrio un error al registrar perfil");
+    }
+
     console.log(content);
   };
 
